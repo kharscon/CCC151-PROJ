@@ -20,6 +20,8 @@ $todayAppointments = 0;
 $seniorPatients = 0;
 $chronicPatients = 0;
 $recentPats = false;
+$todayAppointmentsList = false; // This will hold your live data
+
 
 /* =========================
    DATABASE QUERIES
@@ -37,7 +39,21 @@ if ($dbOk) {
 
         $recentPats = $conn->query("
             SELECT * FROM patients ORDER BY patient_id DESC LIMIT 6
-        ");
+        ");// Live Query: Fetch today's appointments by joining patients
+    $todayDate = date('Y-m-d');
+    
+    // Update the counter card for today
+    $resApptCount = $conn->query("SELECT COUNT(*) AS c FROM appointments WHERE appointment_date = '$todayDate'");
+    if ($resApptCount) $todayAppointmentsCount = $resApptCount->fetch_assoc()['c'];
+
+    // Get the actual list for the dashboard table
+    $todayAppointmentsList = $conn->query("
+        SELECT a.*, p.first_name, p.last_name 
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.patient_id
+        WHERE a.appointment_date = '$todayDate'
+        ORDER BY a.appointment_time ASC
+    ");
     }
 }
 
@@ -47,17 +63,6 @@ if ($dbOk) {
 
 $staffName = htmlspecialchars($_SESSION['staff_name'] ?? 'Staff');
 $staffPosition = htmlspecialchars($_SESSION['staff_position'] ?? 'Staff Member');
-
-/* =========================
-   SAMPLE APPOINTMENTS
-========================= */
-
-$sampleAppointments = [
-    ['time'=>'08:30 AM','name'=>'Maria Santos','purpose'=>'General Check-up','status'=>'completed'],
-    ['time'=>'09:00 AM','name'=>'Juan Dela Cruz','purpose'=>'Blood Pressure Monitoring','status'=>'completed'],
-    ['time'=>'10:30 AM','name'=>'Rosa Garcia','purpose'=>'Prenatal Check-up','status'=>'pending'],
-    ['time'=>'11:00 AM','name'=>'Pedro Reyes','purpose'=>'Vaccination','status'=>'pending'],
-];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -584,36 +589,33 @@ table tbody tr:hover { background: rgba(58,156,88,0.04); }
     <nav class="nav-section">
         <p class="nav-label">Main Menu</p>
 
-        <a href="index.php" class="active">
+        <a href="/health_monitoring/barangay_health/" class="active">
             <span class="nav-icon">📊</span>
             Dashboard   
         </a>
-        <a href="patients/index.php">
+        <a href="/health_monitoring/patients/index.php">
             <span class="nav-icon">👥</span>
-            Patients
+            Client
         </a>
-        <a href="appointments/index.php">
+        <a href="/health_monitoring/appointments/index.php">
             <span class="nav-icon">📅</span>
             Appointments
         </a>
-        <a href="staff/index.php">
+        <a href="/health_monitoring/staff/index.php">
             <span class="nav-icon">👤</span>
             Staff
-        </a>
-        <a href="health_records/index.php">
-            <span class="nav-icon">📋</span>
-            Health Records
+    
         </a>
         <p class="nav-label" style="margin-top:20px;">System</p>
 
-        <a href="settings/i ndex.php">
+        <a href="/health_monitoring/settings/index.php">
             <span class="nav-icon">⚙️</span>
             Settings
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <a href="logout.php">
+        <a href="/health_monitoring/barangay_health/logout.php">
             <span class="nav-icon">↩</span>
             Logout
         </a>
@@ -676,44 +678,52 @@ table tbody tr:hover { background: rgba(58,156,88,0.04); }
     <!-- CONTENT TABLES -->
     <div class="content-grid">
 
-        <!-- TODAY'S APPOINTMENTS -->
         <div class="table-card">
-
-            <div class="table-header">
-                <div class="table-header-title">
-                    <div class="th-icon">📅</div>
-                    Today's Appointments
-                </div>
-                <a href="#" class="view-all">View all →</a>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Patient & Purpose</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach($sampleAppointments as $a): ?>
-                    <tr>
-                        <td><span class="patient-time"><?= $a['time'] ?></span></td>
-                        <td>
-                            <div class="patient-name"><?= $a['name'] ?></div>
-                            <div class="patient-purpose"><?= $a['purpose'] ?></div>
-                        </td>
-                        <td>
-                            <span class="badge <?= $a['status'] ?>">
-                                <?= ucfirst($a['status']) ?>
-                            </span>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-
+    <div class="table-header">
+        <div class="table-header-title">
+            <div class="th-icon">📅</div>
+            Today's Appointments
         </div>
+        <a href="/health_monitoring/appointments/index.php" class="view-all">View all →</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Patient & Purpose</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php if($todayAppointmentsList && $todayAppointmentsList->num_rows > 0): ?>
+            <?php while($appt = $todayAppointmentsList->fetch_assoc()): ?>
+                <tr>
+                    <td><span class="patient-time"><?= date('h:i A', strtotime($appt['appointment_time'])) ?></span></td>
+                    <td>
+                        <div class="patient-name"><?= htmlspecialchars($appt['last_name'] . ', ' . $appt['first_name']) ?></div>
+                        <div class="patient-purpose"><?= htmlspecialchars($appt['purpose'] ?? 'General Check-up') ?></div>
+                    </td>
+                    <td>
+                        <span class="badge <?= strtolower(str_replace(' ', '', $appt['status'])) ?>">
+                            <?= htmlspecialchars($appt['status']) ?>
+                        </span>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="3">
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <p>No appointments scheduled for today.</p>
+                    </div>
+                </td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>
 
         <!-- RECENTLY ADDED PATIENTS -->
         <div class="table-card">

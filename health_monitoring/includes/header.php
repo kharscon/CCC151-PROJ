@@ -3,7 +3,7 @@ session_start();
 
 // Redirect to login if not authenticated
 if (!isset($_SESSION['staff_id'])) {
-    header('Location: /barangayhealth/login.php');
+    header('Location: /health_monitoring/barangay_health/login.php');
     exit;
 }
 
@@ -14,7 +14,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $currentDir  = basename(dirname($_SERVER['PHP_SELF']));
 
 function navActive($dir, $currentDir, $currentPage) {
-    if ($dir === 'index' && $currentPage === 'index.php' && $currentDir === 'barangayhealth') return 'active';
+    if ($dir === 'index' && $currentPage === 'index.php' && $currentDir === 'barangay_health') return 'active';
     if ($dir !== 'index' && $currentDir === $dir) return 'active';
     return '';
 }
@@ -25,37 +25,37 @@ function navActive($dir, $currentDir, $currentPage) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?php echo $pageTitle ?? 'Barangay Health Center'; ?></title>
-  <link rel="stylesheet" href="/barangayhealth/css/style.css">
+  <link rel="stylesheet" href="/health_monitoring/css/style.css">
 </head>
 <body>
 
 <!-- ── Sidebar Navigation ── -->
 <nav class="navbar">
   <div class="nav-brand">
-    <a href="/barangayhealth/">
+    <a href="/health_monitoring/barangay_health/">
       Barangay Health Center
     </a>
   </div>
 
   <ul class="nav-links">
     <li>
-      <a href="/barangayhealth/" class="<?php echo navActive('index', $currentDir, $currentPage); ?>">
+      <a href="/health_monitoring/barangay_health/" class="<?php echo navActive('index', $currentDir, $currentPage); ?>">
         <span class="icon">📊</span> Dashboard
       </a>
     </li>
     <li>
-      <a href="/barangayhealth/patients/" class="<?php echo navActive('patients', $currentDir, $currentPage); ?>">
+      <a href="/health_monitoring/patients/" class="<?php echo navActive('patients', $currentDir, $currentPage); ?>">
         <span class="icon">👥</span> Patients
       </a>
     </li>
     <li>
-      <a href="/barangayhealth/appointments/" class="<?php echo navActive('appointments', $currentDir, $currentPage); ?>">
+      <a href="/health_monitoring/appointments/" class="<?php echo navActive('appointments', $currentDir, $currentPage); ?>">
         <span class="icon">📅</span> Appointments
       </a>
     </li>
     <li>
-      <a href="/barangayhealth/healthrecords/" class="<?php echo navActive('healthrecords', $currentDir, $currentPage); ?>">
-        <span class="icon">🩺</span> Health Records
+      <a href="/health_monitoring/staff/" class="<?php echo navActive('staff', $currentDir, $currentPage); ?>">
+        <span class="icon">👤</span> Staff
       </a>
     </li>
   </ul>
@@ -71,7 +71,7 @@ function navActive($dir, $currentDir, $currentPage) {
         <div style="color:rgba(255,255,255,.5);font-size:.75rem;"><?php echo htmlspecialchars($_SESSION['staff_position'] ?? 'Staff'); ?></div>
       </div>
     </div>
-    <a href="/barangayhealth/logout.php"
+    <a href="/health_monitoring/barangay_health/logout.php"
        style="display:flex;align-items:center;gap:.5rem;color:rgba(255,255,255,.55);font-size:.83rem;text-decoration:none;padding:.45rem .5rem;border-radius:6px;transition:all .2s;"
        onmouseover="this.style.color='#f87171';this.style.background='rgba(239,68,68,.12)';"
        onmouseout="this.style.color='rgba(255,255,255,.55)';this.style.background='transparent';">

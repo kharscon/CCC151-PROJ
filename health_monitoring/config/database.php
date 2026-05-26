@@ -30,6 +30,28 @@ function sanitize($conn, $data) {
 }
 
 /**
+ * Set an alert message in session
+ * @param string $type Alert type: success, danger, warning, info
+ * @param string $message Alert text
+ */
+function setAlert($type, $message) {
+    $_SESSION['alert'] = ['type' => $type, 'message' => $message];
+}
+
+/**
+ * Get and clear the current alert message from session
+ * @return array|null
+ */
+function getAlert() {
+    if (isset($_SESSION['alert'])) {
+        $alert = $_SESSION['alert'];
+        unset($_SESSION['alert']);
+        return $alert;
+    }
+    return null;
+}
+
+/**
  * Close database connection
  * @param mysqli $conn Database connection
  */

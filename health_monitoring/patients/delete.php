@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . '/../barangay_health/config/database.php');
+require_once('../includes/header.php');
 
 session_start();
 
@@ -16,6 +16,9 @@ if ($id > 0) {
     } else {
         setAlert('danger', 'Error deleting patient.');
     }
+    $stmt->close();
+} else {
+    setAlert('danger', 'Invalid patient ID.');
 }
 
 $conn->close();
